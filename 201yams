@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+
+import os, sys
+from math import *
+
+def usage():
+    print("USAGE")
+    print("    ./201yams d1 d2 d3 d4 d5 c")
+    print("DESCRIPTION")
+    print("    d1   value of the first die (0 if not thrown")
+    print("    d2   value of the second die (0 if not thrown")
+    print("    d3   value of the third die (0 if not thrown")
+    print("    d4   value of the fourth die (0 if not thrown")
+    print("    d5   value of the fifth die (0 if not thrown")
+    print("    c    expected combination")
+
+
+# yams_A
+def yams_a(a, dice):
+    result = 1.0
+    chance = 0.0
+
+    for de in dice:
+        if int(de) != int(a):
+            result *= 1.0 / 6.0
+    chance = round(result * 100.0, 2)
+    print("Chances to get a %s yams: %.2f%%" % (a, chance))
+
+
+# full_A_B
+def full_a_b(a, b, dices):
+    result = 1.0
+    nbTree = 0
+    nbSecond = 0
+
+    for de in dices:
+        if int(de) == int(a):
+            nbTree += 1
+        if int(de) == int(b):
+            nbSecond += 1
+    result *= pow(1.0 / 6.0, 3 - (nbTree > 3 and 3 or nbTree))
+    result *= pow(1.0 / 6.0, 2 - (nbSecond > 2 and 2 or nbSecond))
+    print("Chances to get a %s full of %s: %.2f%%" % (a, b, round(result * 100.0, 2)))
+
+# pair - three four
+"""def loiBinomial(occurence, c):
+    if occurence >= c:
+        return 1
+    start = c - occurence
+    res = 0
+    while start <= (5 - occurence):
+        res += (factorial((5 - occurence)) / (factorial(start) * factorial((5 - occurence) - start)))
+        res *= (pow(1.0 / 6.0, start) * pow(5.0 / 6.0, (5 - occurence) - start))
+        start += c - occurence
+    return res
+"""
+# pair_A
+def pair_a(a, dices):
+    count = 0
+    chance = 0.0
+    for de in dices:
+        if int(de) == int(a):
+            count += 1
+    chance = pow(1.0 / 6.0, 2 - (count > 2 and 2 or count)) * 100.0
+    print("Chances to get a %s pair: %.2f%%" % (a, round(chance, 2)))
+
+
+# three_A
+def three_a(a, dices):
+    count = 0
+    chance = 0.0
+
+    for de in dices:
+        if int(de) == int(a):
+            count += 1
+    chance = pow(1.0 / 6.0, 3 - (count > 3 and 3 or count)) * 100.0
+    print("Chances to get a %s three-of-a-kind: %.2f%%" % (a, round(chance, 2)))
+
+
+# four_A
+def four_a(a, des):
+    count = 0
+    chance = 0.0
+
+    for de in des:
+        if int(de) == int(a):
+            count += 1
+    chance = pow(1.0 / 6.0, 4 - (count > 4 and 4 or count)) * 100.0
+    print("Chances to get a %s four-of-a-kind: %.2f%%"  % (a, round(chance, 2)))
+
+
+def getNumber(rules, size):
+    number = rules.split("_")
+    x = len(number)
+
+    if size:
+        assert (x == 3), "full need to have 2 numbers left"
+        assert (0 < int(number[1]) <= 6 and 0 < int(number[2]) <= 6), "param aren't with the good number"
+        assert (int(number[1]) != int(number[2])), "param can't be the same"
+        return number[1:3]
+    else:
+        assert (x == 2), "yams, four, straight need to have 1 number left"
+        assert (0 < int(number[1]) <= 6), "param aren't with the good number"
+        return number[1]
+
+
+def main(ac, av):
+    assert (ac == 7 or ac == 2), "Number of argument aren't valid"
+    if ac == 2:
+        assert (av[1] == "-h"), "Can't read propriety"
+        usage()
+    else:
+        dice = av[1:6]
+        rules = av[6]
+        for d in dice:
+            assert (0 <= int(d) <= 6), "Dice isn't regular"
+        if rules.find("pair") == 0:
+            number = getNumber(rules, False)
+            pair_a(number, dice)
+        elif rules.find("three") == 0:
+            number = getNumber(rules, False)
+            three_a(number, dice)
+        elif rules.find("four") == 0:
+            number = getNumber(rules, False)
+            four_a(number, dice)
+        elif rules.find("full") == 0:
+            number = getNumber(rules, True)
+            full_a_b(number[0], number[1], dice)
+        elif rules.find("straight") == 0:
+            number = getNumber(rules, False)
+            ## TODO
+        elif rules.find("yams") == 0:
+            number = getNumber(rules, False)
+            yams_a(number, dice)
+        else:
+            assert False, "Bad rules given"
+
+
+if __name__ == '__main__':
+    try:
+        main(len(sys.argv), sys.argv)
+        sys.exit(0)
+    except AssertionError as error:
+        sys.stderr.write(str(error))
+        sys.exit(84)
